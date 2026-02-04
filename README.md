@@ -86,6 +86,8 @@ dotnet test
 ## Implementation Status
 
 - Project Setup & Domain Layer
+- pplication Layer (CQRS Foundation)
+- Application Layer (Commands & Queries)
 
 ## Domain Model
 
