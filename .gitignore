@@ -1,0 +1,57 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.cache
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+project.lock.json
+artifacts/
+
+# Test Results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+._*
+
+# Environment files
+*.env
+*.env.local
+appsettings.local.json
+
+# Logs
+logs/
+*.log
+
+# Temporary
+tmp/
+temp/
