@@ -9,6 +9,8 @@ This is JSON REST web service for hotel search built with .NET 10, Clean Archite
 - **Pagination**: Support for paginated search results
 - **JWT Authentication**: Secure API with token-based authentication
 - **Role-Based Authorization**: Admin role required for write operations
+- **Health Checks**: Liveness and readiness endpoints for container orchestration
+- **Structured Logging**: Serilog with correlation IDs
 
 ## Technology Stack
 
@@ -84,6 +86,14 @@ dotnet test
 |--------|----------|-------------|
 | POST | `/api/v1/auth/token` | Generate JWT token |
 
+### Health Checks
+
+| Endpoint | Description |
+|----------|-------------|
+| `/health` | Full health status with all checks |
+| `/health/live` | Liveness probe (is the app running?) |
+| `/health/ready` | Readiness probe (is the app ready to receive traffic?) |
+
 ## Authentication
 
 ### Getting a Token
@@ -117,6 +127,25 @@ curl -X POST http://localhost:5000/api/v1/hotels \
 - **Admin**: Full access to all CRUD operations (use username "admin")
 - **User**: Read-only access to hotels and search
 
+## Health Checks
+
+Check application health:
+```bash
+curl http://localhost:5000/health
+```
+
+Response:
+```json
+{
+  "status": "Healthy",
+  "checks": [
+    { "name": "self", "status": "Healthy", "description": "Application is running" },
+    { "name": "ready", "status": "Healthy", "description": "Application is ready" }
+  ],
+  "duration": 0.5
+}
+```
+
 ## Implementation Status
 
 - Project Setup & Domain Layer
@@ -126,12 +155,13 @@ curl -X POST http://localhost:5000/api/v1/hotels \
 - API Layer (CRUD)
 - API Layer (Search & Caching)
 - Security (JWT Authentication)
+- Logging & Observability
 
 ## Domain Model
 
 ### Hotel Entity
 - `Id` (Guid) - Unique identifier
-- `Name` (string) - Hotel name with max. 200 chars)
+- `Name` (string) - Hotel name with max. 200 chars
 - `PricePerNight` (decimal) - Price per night (> 0)
 - `Location` (GeoLocation) - Latitude and longitude
 
@@ -155,7 +185,32 @@ JWT settings can be configured in `appsettings.json`:
 }
 ```
 
+Generate a secure key: `openssl rand -base64 32`
+
 **Note**: In production, use environment variables or a secrets manager for the SecretKey.
+
+## Logging Configuration
+
+Serilog is configured in `appsettings.json`:
+
+```json
+{
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Warning",
+        "System": "Warning"
+      }
+    }
+  }
+}
+```
+
+Logs include:
+- Request/response timing
+- Correlation IDs for request tracing
+- Structured JSON output
 
 ## License
 
