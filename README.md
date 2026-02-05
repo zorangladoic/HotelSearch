@@ -85,9 +85,10 @@ dotnet test
 
 ## Implementation Status
 
-- Project Setup & Domain Layer
-- pplication Layer (CQRS Foundation)
-- Application Layer (Commands & Queries)
+- Project Setup & Add Domain Layer
+- Add in Application Layer CQRS Foundation
+- Application Layer extend with Commands and Queries
+- Infrastructure Layer implementation (Caching, InMemo Repositry, Resiliance)
 
 ## Domain Model
 
