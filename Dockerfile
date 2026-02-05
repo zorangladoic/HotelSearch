@@ -22,19 +22,11 @@ RUN dotnet publish "HotelSearch.Api.csproj" -c Release -o /app/publish /p:UseApp
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 
-# Create non-root user for security
-RUN adduser --disabled-password --gecos "" appuser && chown -R appuser:appuser /app
-USER appuser
-
 # Copy published app
 COPY --from=publish /app/publish .
 
 # Expose port
 EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health/live || exit 1
 
 # Set entry point
 ENTRYPOINT ["dotnet", "HotelSearch.Api.dll"]
