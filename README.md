@@ -85,10 +85,12 @@ dotnet test
 
 ## Implementation Status
 
-- Project Setup & Add Domain Layer
-- Add in Application Layer CQRS Foundation
-- Application Layer extend with Commands and Queries
-- Infrastructure Layer implementation (Caching, InMemo Repositry, Resiliance)
+- Project Setup & Domain Layer
+- Application Layer (CQRS Foundation)
+- Application Layer (Commands & Queries)
+- Infrastructure Layer
+- API Layer (CRUD)
+- API Layer (Search & Caching)
 
 ## Domain Model
 
