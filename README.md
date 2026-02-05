@@ -11,6 +11,8 @@ This is JSON REST web service for hotel search built with .NET 10, Clean Archite
 - **Role-Based Authorization**: Admin role required for write operations
 - **Health Checks**: Liveness and readiness endpoints for container orchestration
 - **Structured Logging**: Serilog with correlation IDs
+- **Docker Support**: Multi-stage Dockerfile for containerization
+- **CI/CD**: GitHub Actions workflow for build, test, and deploy
 
 ## Technology Stack
 
@@ -22,6 +24,8 @@ This is JSON REST web service for hotel search built with .NET 10, Clean Archite
 - **Polly** (resilience)
 - **Serilog** (structured logging)
 - **xUnit** (testing)
+- **Docker** (containerization)
+- **GitHub Actions** (CI/CD)
 
 ## Project Structure
 
@@ -35,6 +39,8 @@ HotelSearch/
 ├── tests/
 │   ├── HotelSearch.UnitTests/        # Unit tests
 │   └── HotelSearch.IntegrationTests/ # Integration tests
+├── .github/workflows/                # CI/CD pipelines
+├── Dockerfile                        # Container definition
 └── HotelSearch.sln
 ```
 
@@ -43,6 +49,7 @@ HotelSearch/
 ### Prerequisites
 
 - .NET 10 SDK
+- Docker (optional, for containerization)
 
 ### Build
 
@@ -60,6 +67,64 @@ dotnet run --project src/HotelSearch.Api
 
 ```bash
 dotnet test
+```
+
+### Docker
+
+Build the Docker image:
+
+```bash
+docker build -t hotel-search-api .
+```
+
+Run the container:
+
+```bash
+docker run -d -p 8080:8080 --name hotel-api hotel-search-api
+```
+
+The API will be available at `http://localhost:8080`.
+
+Run with environment variables (for production JWT secret):
+
+```bash
+docker run -d -p 8080:8080 \
+  -e Jwt__SecretKey="YourProductionSecretKey" \
+  -e ASPNETCORE_ENVIRONMENT=Production \
+  --name hotel-api hotel-search-api
+```
+
+View container logs:
+
+```bash
+docker logs -f hotel-api
+```
+
+Stop and remove the container:
+
+```bash
+docker stop hotel-api && docker rm hotel-api
+```
+
+#### Docker Compose (optional)
+
+Create a `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+```
+
+Run with Docker Compose:
+
+```bash
+docker-compose up -d
 ```
 
 ## API Endpoints
@@ -146,6 +211,15 @@ Response:
 }
 ```
 
+## CI/CD
+
+The project includes a GitHub Actions workflow that:
+- Builds the solution
+- Runs unit tests
+- Runs integration tests
+- Publishes artifacts (on master push)
+- Builds Docker image (on master push)
+
 ## Implementation Status
 
 - Project Setup & Domain Layer
@@ -156,6 +230,7 @@ Response:
 - API Layer (Search & Caching)
 - Security (JWT Authentication)
 - Logging & Observability
+- CI/CD & Final Polish
 
 ## Domain Model
 
