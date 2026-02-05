@@ -1,10 +1,14 @@
-name: CI
+name: CI/CD
 
 on:
-  push:
-    branches: [ master, develop ]
-  pull_request:
-    branches: [ master, develop ]
+  # Manual trigger only
+  workflow_dispatch:
+
+  # Commented out automatic triggers
+  # push:
+  #   branches: [ master, develop ]
+  # pull_request:
+  #   branches: [ master, develop ]
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -48,7 +52,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
     - name: Checkout code
@@ -72,7 +75,6 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
 
     steps:
     - name: Checkout code
