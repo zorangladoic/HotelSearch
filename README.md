@@ -8,6 +8,7 @@ This is JSON REST web service for hotel search built with .NET 10, Clean Archite
 - **Search**: Find hotels sorted by price and distance from your location
 - **Pagination**: Support for paginated search results
 - **JWT Authentication**: Secure API with token-based authentication
+- **Role-Based Authorization**: Admin role required for write operations
 
 ## Technology Stack
 
@@ -63,25 +64,58 @@ dotnet test
 
 ### Hotels (CRUD)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/v1/hotels` | Create a new hotel |
-| GET | `/api/v1/hotels/{id}` | Get hotel by ID |
-| GET | `/api/v1/hotels` | Get all hotels |
-| PUT | `/api/v1/hotels/{id}` | Update a hotel |
-| DELETE | `/api/v1/hotels/{id}` | Delete a hotel |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/api/v1/hotels` | Create a new hotel | Admin |
+| GET | `/api/v1/hotels/{id}` | Get hotel by ID | Anonymous |
+| GET | `/api/v1/hotels` | Get all hotels | Anonymous |
+| PUT | `/api/v1/hotels/{id}` | Update a hotel | Admin |
+| DELETE | `/api/v1/hotels/{id}` | Delete a hotel | Admin |
 
 ### Search
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/v1/search?latitude={lat}&longitude={lon}&page={page}&pageSize={size}` | Search hotels |
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/api/v1/search?latitude={lat}&longitude={lon}&page={page}&pageSize={size}` | Search hotels | Anonymous |
 
 ### Authentication
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/v1/auth/token` | Generate JWT token |
+
+## Authentication
+
+### Getting a Token
+
+```bash
+curl -X POST http://localhost:5000/api/v1/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "any"}'
+```
+
+Response:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresInMinutes": 60
+}
+```
+
+### Using the Token
+
+Include the token in the Authorization header:
+```bash
+curl -X POST http://localhost:5000/api/v1/hotels \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -d '{"name": "Grand Hotel", "pricePerNight": 150.00, "latitude": 45.815, "longitude": 15.982}'
+```
+
+### Roles
+
+- **Admin**: Full access to all CRUD operations (use username "admin")
+- **User**: Read-only access to hotels and search
 
 ## Implementation Status
 
@@ -91,6 +125,7 @@ dotnet test
 - Infrastructure Layer
 - API Layer (CRUD)
 - API Layer (Search & Caching)
+- Security (JWT Authentication)
 
 ## Domain Model
 
@@ -104,6 +139,23 @@ dotnet test
 - `Latitude` (double) - Range: -90 to 90
 - `Longitude` (double) - Range: -180 to 180
 - `DistanceTo()` - Haversine formula for distance calculation
+
+## Security Configuration
+
+JWT settings can be configured in `appsettings.json`:
+
+```json
+{
+  "Jwt": {
+    "Issuer": "HotelSearchApi",
+    "Audience": "HotelSearchApiClients",
+    "SecretKey": "YourSuperSecretKeyForJwtTokenGeneration_MustBeAtLeast32Characters!",
+    "ExpirationMinutes": 60
+  }
+}
+```
+
+**Note**: In production, use environment variables or a secrets manager for the SecretKey.
 
 ## License
 
