@@ -648,7 +648,7 @@ spec:
 
 - **Unit Tests**: 51 tests covering domain, application, and infrastructure
 - **Integration Tests**: 19 tests covering full API flows
-- **Total**: 70 tests, all passing
+- **Total**: 73 tests, all passing
 
 ### Running Tests
 
