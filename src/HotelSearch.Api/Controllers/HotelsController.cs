@@ -1,3 +1,4 @@
+using HotelSearch.Api.Models;
 using HotelSearch.Application.Common.Interfaces;
 using HotelSearch.Application.DTOs;
 using HotelSearch.Application.Hotels.Commands.CreateHotel;
@@ -7,6 +8,7 @@ using HotelSearch.Application.Hotels.Queries.GetAllHotels;
 using HotelSearch.Application.Hotels.Queries.GetHotelById;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace HotelSearch.Api.Controllers;
 
@@ -15,10 +17,12 @@ namespace HotelSearch.Api.Controllers;
 public class HotelsController : ControllerBase
 {
     private readonly IDispatcher _dispatcher;
+    private readonly IOutputCacheStore _cacheStore;
 
-    public HotelsController(IDispatcher dispatcher)
+    public HotelsController(IDispatcher dispatcher, IOutputCacheStore cacheStore)
     {
         _dispatcher = dispatcher;
+        _cacheStore = cacheStore;
     }
 
     [HttpPost]
@@ -36,6 +40,9 @@ public class HotelsController : ControllerBase
             request.Longitude);
 
         var hotel = await _dispatcher.Send(command, cancellationToken);
+
+        // Invalidate search cache when hotel data changes
+        await InvalidateSearchCacheAsync(cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = hotel.Id }, hotel);
     }
@@ -86,6 +93,9 @@ public class HotelsController : ControllerBase
 
         var hotel = await _dispatcher.Send(command, cancellationToken);
 
+        // Invalidate search cache when hotel data changes
+        await InvalidateSearchCacheAsync(cancellationToken);
+
         return Ok(hotel);
     }
 
@@ -100,10 +110,23 @@ public class HotelsController : ControllerBase
         var command = new DeleteHotelCommand(id);
         await _dispatcher.Send(command, cancellationToken);
 
+        // Invalidate search cache when hotel data changes
+        await InvalidateSearchCacheAsync(cancellationToken);
+
         return NoContent();
+    }
+
+    /// <summary>
+    /// Invalidates the search results cache when hotel data changes.
+    /// This ensures search results reflect the latest hotel data.
+    /// </summary>
+    private async Task InvalidateSearchCacheAsync(CancellationToken cancellationToken)
+    {
+        // Evict all cached entries with the "SearchResults" tag
+        // This invalidates all search result pages regardless of query parameters
+        await _cacheStore.EvictByTagAsync("SearchResults", cancellationToken);
     }
 }
 
 public record CreateHotelRequest(string Name, decimal PricePerNight, double Latitude, double Longitude);
 public record UpdateHotelRequest(string Name, decimal PricePerNight, double Latitude, double Longitude);
-public record ErrorResponse(string Message, string[] Errors, string CorrelationId);

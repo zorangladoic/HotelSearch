@@ -1,9 +1,9 @@
+using HotelSearch.Domain.Common;
+
 namespace HotelSearch.Domain.ValueObjects;
 
 public sealed class GeoLocation : IEquatable<GeoLocation>
 {
-    private const double EarthRadiusKm = 6371.0;
-
     public double Latitude { get; }
     public double Longitude { get; }
 
@@ -15,34 +15,32 @@ public sealed class GeoLocation : IEquatable<GeoLocation>
 
     public static GeoLocation Create(double latitude, double longitude)
     {
-        if (latitude < -90 || latitude > 90)
-            throw new ArgumentOutOfRangeException(nameof(latitude), latitude, "Latitude must be between -90 and 90 degrees.");
+        if (!GeoConstants.IsValidLatitude(latitude))
+            throw new ArgumentOutOfRangeException(nameof(latitude), latitude, GeoConstants.LatitudeErrorMessage);
 
-        if (longitude < -180 || longitude > 180)
-            throw new ArgumentOutOfRangeException(nameof(longitude), longitude, "Longitude must be between -180 and 180 degrees.");
+        if (!GeoConstants.IsValidLongitude(longitude))
+            throw new ArgumentOutOfRangeException(nameof(longitude), longitude, GeoConstants.LongitudeErrorMessage);
 
         return new GeoLocation(latitude, longitude);
     }
 
-    public double DistanceTo(GeoLocation other)
+    public double DistanceTo(GeoLocation destination)
     {
-        ArgumentNullException.ThrowIfNull(other);
+        ArgumentNullException.ThrowIfNull(destination);
 
-        var lat1Rad = DegreesToRadians(Latitude);
-        var lat2Rad = DegreesToRadians(other.Latitude);
-        var deltaLat = DegreesToRadians(other.Latitude - Latitude);
-        var deltaLon = DegreesToRadians(other.Longitude - Longitude);
+        var originLatRad = GeoConstants.DegreesToRadians(Latitude);
+        var destinationLatRad = GeoConstants.DegreesToRadians(destination.Latitude);
+        var deltaLat = GeoConstants.DegreesToRadians(destination.Latitude - Latitude);
+        var deltaLon = GeoConstants.DegreesToRadians(destination.Longitude - Longitude);
 
         var a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
-                Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
+                Math.Cos(originLatRad) * Math.Cos(destinationLatRad) *
                 Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
 
         var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
 
-        return EarthRadiusKm * c;
+        return GeoConstants.EarthRadiusKm * c;
     }
-
-    private static double DegreesToRadians(double degrees) => degrees * Math.PI / 180.0;
 
     public bool Equals(GeoLocation? other)
     {

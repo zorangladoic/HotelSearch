@@ -2,6 +2,7 @@ using FluentAssertions;
 using HotelSearch.Application.Hotels.Queries.SearchHotels;
 using HotelSearch.Application.Interfaces;
 using HotelSearch.Domain.Entities;
+using HotelSearch.Infrastructure.Services;
 using Moq;
 
 namespace HotelSearch.UnitTests.Application.Queries;
@@ -9,12 +10,15 @@ namespace HotelSearch.UnitTests.Application.Queries;
 public class SearchHotelsQueryHandlerTests
 {
     private readonly Mock<IHotelRepository> _repositoryMock;
+    private readonly IHotelSearchService _searchService;
     private readonly SearchHotelsQueryHandler _handler;
 
     public SearchHotelsQueryHandlerTests()
     {
         _repositoryMock = new Mock<IHotelRepository>();
-        _handler = new SearchHotelsQueryHandler(_repositoryMock.Object);
+        // Use real search service - it contains the business logic we want to test
+        _searchService = new HotelSearchService();
+        _handler = new SearchHotelsQueryHandler(_repositoryMock.Object, _searchService);
     }
 
     [Fact]

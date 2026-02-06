@@ -2,6 +2,10 @@ using HotelSearch.Domain.Entities;
 
 namespace HotelSearch.Application.Interfaces;
 
+/// <summary>
+/// Repository interface for Hotel entity CRUD operations.
+/// Follows the Repository pattern - pure data access, no business logic.
+/// </summary>
 public interface IHotelRepository
 {
     Task<Hotel?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);

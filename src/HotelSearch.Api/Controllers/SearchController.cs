@@ -1,4 +1,6 @@
+using HotelSearch.Api.Models;
 using HotelSearch.Application.Common.Interfaces;
+using HotelSearch.Application.Common.Validators;
 using HotelSearch.Application.DTOs;
 using HotelSearch.Application.Hotels.Queries.SearchHotels;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +38,17 @@ public class SearchController : ControllerBase
         if (!longitude.HasValue)
         {
             return BadRequest(new ErrorResponse("Validation failed", ["Longitude is required."], HttpContext.TraceIdentifier));
+        }
+
+        // Validate coordinate bounds using shared rules
+        if (!GeoCoordinateRules.IsValidLatitude(latitude.Value))
+        {
+            return BadRequest(new ErrorResponse("Validation failed", [GeoCoordinateRules.LatitudeErrorMessage], HttpContext.TraceIdentifier));
+        }
+
+        if (!GeoCoordinateRules.IsValidLongitude(longitude.Value))
+        {
+            return BadRequest(new ErrorResponse("Validation failed", [GeoCoordinateRules.LongitudeErrorMessage], HttpContext.TraceIdentifier));
         }
 
         var query = new SearchHotelsQuery(latitude.Value, longitude.Value, page, pageSize);

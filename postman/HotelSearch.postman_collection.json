@@ -1,0 +1,944 @@
+{
+	"info": {
+		"_postman_id": "hotel-search-api-collection",
+		"name": "HotelSearch API",
+		"description": "Complete API collection for HotelSearch service.\n\n## Getting Started\n1. Import this collection and the environment file\n2. Start the API: `dotnet run --project src/HotelSearch.Api`\n3. Run \"Auth > Get Admin Token\" to authenticate\n4. Explore all endpoints!\n\n## Authentication\n- Admin endpoints (POST, PUT, DELETE) require JWT token\n- Search and GET endpoints are public\n- Use username \"admin\" for admin role",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5236",
+			"type": "string"
+		},
+		{
+			"key": "adminToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "hotelId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Auth",
+			"description": "Authentication endpoints for JWT token generation",
+			"item": [
+				{
+					"name": "Get Admin Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"adminToken\", jsonData.accessToken);",
+									"    pm.test(\"Token saved to collection variables\", function () {",
+									"        pm.expect(jsonData.accessToken).to.not.be.empty;",
+									"    });",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has accessToken\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('accessToken');",
+									"    pm.expect(jsonData).to.have.property('expiresInMinutes');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "token"]
+						},
+						"description": "Get JWT token with Admin role.\n\nUsername \"admin\" grants Admin role for write operations."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Token (Non-Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has accessToken\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('accessToken');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"user\",\n    \"password\": \"user123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "token"]
+						},
+						"description": "Get JWT token without Admin role.\n\nThis token cannot access write operations (POST, PUT, DELETE)."
+					},
+					"response": []
+				},
+				{
+					"name": "Invalid Credentials",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"\",\n    \"password\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "token"]
+						},
+						"description": "Test with empty credentials - should return 401 Unauthorized"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Hotels",
+			"description": "CRUD operations for hotel management",
+			"item": [
+				{
+					"name": "Create Hotel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set(\"hotelId\", jsonData.id);",
+									"    pm.test(\"Hotel ID saved to collection variables\", function () {",
+									"        pm.expect(jsonData.id).to.not.be.empty;",
+									"    });",
+									"}",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response has hotel properties\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"    pm.expect(jsonData).to.have.property('pricePerNight');",
+									"    pm.expect(jsonData).to.have.property('latitude');",
+									"    pm.expect(jsonData).to.have.property('longitude');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Grand Hotel Zagreb\",\n    \"pricePerNight\": 150.00,\n    \"latitude\": 45.815,\n    \"longitude\": 15.982\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels"]
+						},
+						"description": "Create a new hotel.\n\n**Requires Admin token** - Run \"Get Admin Token\" first.\n\nValidation rules:\n- Name: Required, max 200 chars\n- Price: >= 0.01, <= 100,000,000\n- Latitude: -90 to 90\n- Longitude: -180 to 180"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hotel - Hotel Esplanade",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Hotel Esplanade\",\n    \"pricePerNight\": 250.00,\n    \"latitude\": 45.8047,\n    \"longitude\": 15.9788\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels"]
+						},
+						"description": "Create Hotel Esplanade (Zagreb, Croatia)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hotel - Budget Inn",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Budget Inn\",\n    \"pricePerNight\": 50.00,\n    \"latitude\": 45.82,\n    \"longitude\": 15.99\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels"]
+						},
+						"description": "Create Budget Inn (affordable option)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Hotel by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has hotel properties\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('name');",
+									"    pm.expect(jsonData).to.have.property('pricePerNight');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels/{{hotelId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels", "{{hotelId}}"]
+						},
+						"description": "Get a hotel by ID.\n\n**Public endpoint** - No authentication required.\n\nUses the hotelId saved from Create Hotel request."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Hotels",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is an array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels"]
+						},
+						"description": "Get all hotels.\n\n**Public endpoint** - No authentication required."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Hotel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Hotel name was updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.name).to.equal('Grand Hotel Zagreb - Updated');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Grand Hotel Zagreb - Updated\",\n    \"pricePerNight\": 175.00,\n    \"latitude\": 45.815,\n    \"longitude\": 15.982\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels/{{hotelId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels", "{{hotelId}}"]
+						},
+						"description": "Update an existing hotel.\n\n**Requires Admin token** - Run \"Get Admin Token\" first."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Hotel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels/{{hotelId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels", "{{hotelId}}"]
+						},
+						"description": "Delete a hotel.\n\n**Requires Admin token** - Run \"Get Admin Token\" first."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hotel - Validation Error",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Response has error details\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData).to.have.property('errors');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{adminToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"\",\n    \"pricePerNight\": -10,\n    \"latitude\": 100,\n    \"longitude\": 200\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels"]
+						},
+						"description": "Test validation errors:\n- Empty name\n- Negative price\n- Invalid latitude (> 90)\n- Invalid longitude (> 180)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Hotel - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Test Hotel\",\n    \"pricePerNight\": 100,\n    \"latitude\": 45.0,\n    \"longitude\": 15.0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels"]
+						},
+						"description": "Test creating hotel without authentication - should return 401 Unauthorized"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Non-Existent Hotel",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/hotels/00000000-0000-0000-0000-000000000000",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "hotels", "00000000-0000-0000-0000-000000000000"]
+						},
+						"description": "Test getting a non-existent hotel - should return 404"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Search",
+			"description": "Hotel search with distance-based sorting",
+			"item": [
+				{
+					"name": "Search Hotels - Zagreb Center",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has pagination info\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('items');",
+									"    pm.expect(jsonData).to.have.property('page');",
+									"    pm.expect(jsonData).to.have.property('pageSize');",
+									"    pm.expect(jsonData).to.have.property('totalCount');",
+									"    pm.expect(jsonData).to.have.property('totalPages');",
+									"});",
+									"",
+									"pm.test(\"Items have distance field\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.items.length > 0) {",
+									"        pm.expect(jsonData.items[0]).to.have.property('distanceKm');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/search?latitude=45.815&longitude=15.982&page=1&pageSize=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "search"],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "45.815",
+									"description": "Zagreb main square latitude"
+								},
+								{
+									"key": "longitude",
+									"value": "15.982",
+									"description": "Zagreb main square longitude"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Search hotels near Zagreb city center.\n\n**Public endpoint** - No authentication required.\n\nResults are sorted by combined price and distance score."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels - New York",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/search?latitude=40.7128&longitude=-74.0060&page=1&pageSize=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "search"],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "40.7128",
+									"description": "New York City latitude"
+								},
+								{
+									"key": "longitude",
+									"value": "-74.0060",
+									"description": "New York City longitude"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Search hotels near New York City - expect large distances"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels - Page 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response shows page 2\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.page).to.equal(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/search?latitude=45.815&longitude=15.982&page=2&pageSize=2",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "search"],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "45.815"
+								},
+								{
+									"key": "longitude",
+									"value": "15.982"
+								},
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "pageSize",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Test pagination - get page 2 with 2 items per page"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels - Missing Latitude",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error mentions latitude\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errors[0].toLowerCase()).to.include('latitude');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/search?longitude=15.982",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "search"],
+							"query": [
+								{
+									"key": "longitude",
+									"value": "15.982"
+								}
+							]
+						},
+						"description": "Test validation - missing latitude parameter"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels - Invalid Latitude",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error mentions latitude bounds\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errors[0]).to.include('-90');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/search?latitude=100&longitude=15.982",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "search"],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "100",
+									"description": "Invalid - exceeds max 90"
+								},
+								{
+									"key": "longitude",
+									"value": "15.982"
+								}
+							]
+						},
+						"description": "Test validation - latitude > 90 degrees"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Hotels - Invalid Longitude",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error mentions longitude bounds\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.errors[0]).to.include('-180');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/search?latitude=45.815&longitude=200",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "search"],
+							"query": [
+								{
+									"key": "latitude",
+									"value": "45.815"
+								},
+								{
+									"key": "longitude",
+									"value": "200",
+									"description": "Invalid - exceeds max 180"
+								}
+							]
+						},
+						"description": "Test validation - longitude > 180 degrees"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"description": "Health check endpoints",
+			"item": [
+				{
+					"name": "Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Status is Healthy\", function () {",
+									"    pm.expect(pm.response.text()).to.include('Healthy');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["health"]
+						},
+						"description": "Basic health check endpoint"
+					},
+					"response": []
+				},
+				{
+					"name": "Readiness Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health/ready",
+							"host": ["{{baseUrl}}"],
+							"path": ["health", "ready"]
+						},
+						"description": "Readiness probe for Kubernetes/container orchestration"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

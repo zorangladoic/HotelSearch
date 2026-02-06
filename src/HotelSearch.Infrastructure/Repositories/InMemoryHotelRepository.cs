@@ -22,6 +22,8 @@ public sealed class InMemoryHotelRepository : IHotelRepository
 
     public Task<Hotel> AddAsync(Hotel hotel, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(hotel);
+
         if (!_hotels.TryAdd(hotel.Id, hotel))
         {
             throw new InvalidOperationException($"Hotel with ID {hotel.Id} already exists.");
@@ -32,6 +34,13 @@ public sealed class InMemoryHotelRepository : IHotelRepository
 
     public Task<Hotel> UpdateAsync(Hotel hotel, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(hotel);
+
+        if (!_hotels.ContainsKey(hotel.Id))
+        {
+            throw new InvalidOperationException($"Hotel with ID {hotel.Id} does not exist.");
+        }
+
         _hotels[hotel.Id] = hotel;
         return Task.FromResult(hotel);
     }

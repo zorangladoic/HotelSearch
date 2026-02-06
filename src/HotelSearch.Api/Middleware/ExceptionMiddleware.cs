@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FluentValidation;
+using HotelSearch.Api.Models;
 using HotelSearch.Domain.Exceptions;
 
 namespace HotelSearch.Api.Middleware;
@@ -77,5 +78,3 @@ public class ExceptionMiddleware
         await context.Response.WriteAsync(JsonSerializer.Serialize(message, options));
     }
 }
-
-public record ErrorResponse(string Message, string[] Errors, string CorrelationId);

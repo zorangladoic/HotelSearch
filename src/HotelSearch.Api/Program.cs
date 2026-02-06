@@ -129,7 +129,11 @@ try
     app.UseMiddleware<ExceptionMiddleware>();
     app.UseMiddleware<CorrelationIdMiddleware>();
 
-    app.UseHttpsRedirection();
+    // Only redirect to HTTPS in development (container uses HTTP)
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseHttpsRedirection();
+    }
     app.UseOutputCache();
 
     app.UseAuthentication();

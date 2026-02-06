@@ -7,6 +7,7 @@ public sealed class Hotel : Entity
 {
     public const int MaxNameLength = 200;
     public const decimal MinPrice = 0.01m;
+    public const decimal MaxPrice = 100_000_000m; // Reasonable maximum ($100M per night)
 
     public string Name { get; private set; } = string.Empty;
     public decimal PricePerNight { get; private set; }
@@ -16,21 +17,21 @@ public sealed class Hotel : Entity
 
     private Hotel() : base() { }
 
-    private Hotel(Guid id, string name, decimal pricePerNight, GeoLocation location) : base(id)
+    private Hotel(Guid id, string name, decimal pricePerNight, GeoLocation location, ISystemClock clock) : base(id)
     {
         Name = name;
         PricePerNight = pricePerNight;
         Location = location;
-        CreatedAt = DateTime.UtcNow;
+        CreatedAt = clock.UtcNow;
     }
 
-    public static Hotel Create(string name, decimal pricePerNight, double latitude, double longitude)
+    public static Hotel Create(string name, decimal pricePerNight, double latitude, double longitude, ISystemClock? clock = null)
     {
         ValidateName(name);
         ValidatePrice(pricePerNight);
 
         var location = GeoLocation.Create(latitude, longitude);
-        return new Hotel(Guid.NewGuid(), name.Trim(), pricePerNight, location);
+        return new Hotel(Guid.NewGuid(), name.Trim(), pricePerNight, location, clock ?? SystemClock.Instance);
     }
 
     public static Hotel CreateWithId(Guid id, string name, decimal pricePerNight, double latitude, double longitude, DateTime createdAt, DateTime? updatedAt = null)
@@ -39,14 +40,14 @@ public sealed class Hotel : Entity
         ValidatePrice(pricePerNight);
 
         var location = GeoLocation.Create(latitude, longitude);
-        return new Hotel(id, name.Trim(), pricePerNight, location)
+        return new Hotel(id, name.Trim(), pricePerNight, location, SystemClock.Instance)
         {
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
     }
 
-    public void Update(string name, decimal pricePerNight, double latitude, double longitude)
+    public void Update(string name, decimal pricePerNight, double latitude, double longitude, ISystemClock? clock = null)
     {
         ValidateName(name);
         ValidatePrice(pricePerNight);
@@ -54,7 +55,7 @@ public sealed class Hotel : Entity
         Name = name.Trim();
         PricePerNight = pricePerNight;
         Location = GeoLocation.Create(latitude, longitude);
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = (clock ?? SystemClock.Instance).UtcNow;
     }
 
     public double DistanceTo(GeoLocation location) => Location.DistanceTo(location);
@@ -72,5 +73,8 @@ public sealed class Hotel : Entity
     {
         if (pricePerNight < MinPrice)
             throw new ArgumentOutOfRangeException(nameof(pricePerNight), pricePerNight, $"Price per night must be at least {MinPrice}.");
+
+        if (pricePerNight > MaxPrice)
+            throw new ArgumentOutOfRangeException(nameof(pricePerNight), pricePerNight, $"Price per night cannot exceed {MaxPrice}.");
     }
 }

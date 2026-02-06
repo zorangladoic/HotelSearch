@@ -1,4 +1,5 @@
 using FluentValidation;
+using HotelSearch.Application.Common.Validators;
 using HotelSearch.Domain.Entities;
 
 namespace HotelSearch.Application.Hotels.Commands.CreateHotel;
@@ -12,12 +13,10 @@ public sealed class CreateHotelCommandValidator : AbstractValidator<CreateHotelC
             .MaximumLength(Hotel.MaxNameLength).WithMessage($"Hotel name cannot exceed {Hotel.MaxNameLength} characters.");
 
         RuleFor(x => x.PricePerNight)
-            .GreaterThanOrEqualTo(Hotel.MinPrice).WithMessage($"Price per night must be at least {Hotel.MinPrice}.");
+            .GreaterThanOrEqualTo(Hotel.MinPrice).WithMessage($"Price per night must be at least {Hotel.MinPrice}.")
+            .LessThanOrEqualTo(Hotel.MaxPrice).WithMessage($"Price per night cannot exceed {Hotel.MaxPrice}.");
 
-        RuleFor(x => x.Latitude)
-            .InclusiveBetween(-90, 90).WithMessage("Latitude must be between -90 and 90 degrees.");
-
-        RuleFor(x => x.Longitude)
-            .InclusiveBetween(-180, 180).WithMessage("Longitude must be between -180 and 180 degrees.");
+        RuleFor(x => x.Latitude).ValidLatitude();
+        RuleFor(x => x.Longitude).ValidLongitude();
     }
 }

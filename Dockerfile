@@ -25,6 +25,10 @@ WORKDIR /app
 # Copy published app
 COPY --from=publish /app/publish .
 
+# Configure ASP.NET Core to listen on port 8080
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
 # Expose port
 EXPOSE 8080
 
