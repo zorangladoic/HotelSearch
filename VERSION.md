@@ -8,7 +8,14 @@
 - Swagger disabled in Production environment
 
 ### Changed
-- README.md completely rewritten with comprehensive documentation
+- `GeoLocation` value object:
+  - Fixed equality/hash contract by quantizing coordinates used in `GetHashCode`.
+  - Prevented potential NaN from Haversine calculation by clamping intermediate values.
+  - Added explicit NaN/Infinity validation for latitude and longitude.
+  - Added small fast-path and aligned `ToString` precision with equality tolerance.
+
+### Added
+- Unit tests covering hash/equality contract, NaN/Infinity validation, and antipodal-distance sanity check.
 
 ## [1.1.0] - 2025-02-06
 
