@@ -6,6 +6,8 @@
 - Docker container now correctly listens on port 8080 (added ASPNETCORE_URLS env variable)
 - HTTPS redirection disabled in Production (container uses HTTP)
 - Swagger disabled in Production environment
+- Disabled output cache on `HotelsController` GET endpoints (`GetById`, `GetAll`) to prevent stale data after updates
+- Fixed search cache invalidation by adding `.Tag("SearchResults")` to cache policy (cache eviction was not working)
 
 ### Changed
 - `GeoLocation` value object:

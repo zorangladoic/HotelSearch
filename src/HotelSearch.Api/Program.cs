@@ -93,7 +93,8 @@ try
         options.AddBasePolicy(b => b.Expire(TimeSpan.FromMinutes(5)));
         options.AddPolicy("SearchResults", b =>
             b.Expire(TimeSpan.FromMinutes(2))
-             .SetVaryByQuery("latitude", "longitude", "page", "pageSize"));
+             .SetVaryByQuery("latitude", "longitude", "page", "pageSize")
+             .Tag("SearchResults"));
     });
 
     // Configure Health Checks

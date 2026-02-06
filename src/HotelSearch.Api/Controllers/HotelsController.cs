@@ -49,6 +49,7 @@ public class HotelsController : ControllerBase
 
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
+    [OutputCache(NoStore = true)]
     [ProducesResponseType(typeof(HotelDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
@@ -66,6 +67,7 @@ public class HotelsController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
+    [OutputCache(NoStore = true)]
     [ProducesResponseType(typeof(IReadOnlyList<HotelDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
